@@ -25,10 +25,10 @@ public:
 protected:
 };
 
-#if defined(__APPLE__)
+//#if defined(__APPLE__)
 typedef std::shared_ptr<Logger> LoggerPointer;
-#else
-typedef std::tr1::shared_ptr<Logger> LoggerPointer;
-#endif
+//#else
+//typedef std::tr1::shared_ptr<Logger> LoggerPointer;
+//#endif
 
 #endif

@@ -148,7 +148,7 @@ bool ImageProcessingDialog::updateGK()
         this->clearGK();
         
         mGKRadius = ui->spinBoxGKRadius->value();
-        size_t size = (mGKRadius<<1)+1;
+        unsigned int size = (mGKRadius<<1)+1;
         mGKMask = new float[size*size];
         float sx = ui->doubleSpinBoxGKSigmaX->value();
         float sy = ui->doubleSpinBoxGKSigmaY->value();
@@ -417,49 +417,56 @@ bool ImageProcessingDialog::buildOCLMemoryObjects()
 
         size_t imgWidth = mSourceImage.width();
         size_t imgHeight = mSourceImage.height();
-        cl_image_format volumeFormat;
-        volumeFormat.image_channel_order = CL_ARGB;
-        volumeFormat.image_channel_data_type = CL_UNORM_INT8;
-        mImageIn = clCreateImage2D(mContext,
-            CL_MEM_READ_ONLY, &volumeFormat,
-            imgWidth, imgHeight, 0,
-            0, &retCode);
+        cl_image_format imgFormat;
+        imgFormat.image_channel_order = CL_ARGB;
+        imgFormat.image_channel_data_type = CL_UNORM_INT8;
+        //mImageIn = clCreateImage2D(mContext, CL_MEM_READ_ONLY, &imgFormat, imgWidth, imgHeight, 0, NULL, &retCode);
+        cl_image_desc imgDesc;
+        imgDesc.image_type = CL_MEM_OBJECT_IMAGE2D;
+        imgDesc.image_width = imgWidth;
+        imgDesc.image_height = imgHeight;
+        imgDesc.image_row_pitch = 0;
+        imgDesc.image_slice_pitch = 0;
+        imgDesc.num_mip_levels = 0;
+        imgDesc.num_samples = 0;
+        imgDesc.buffer = NULL;
+        mImageIn = clCreateImage(mContext, CL_MEM_READ_ONLY, &imgFormat, &imgDesc, NULL, &retCode);
         if (retCode != CL_SUCCESS) {
             ERROR_MESSAGE("Create image 2D for input image failed! Image size = " << imgWidth << "x" << imgHeight << ". " <<  "Error code = " << retCode);
             return false;
         }
 
         mImageDataOut = clCreateBuffer(mContext,
-            CL_MEM_WRITE_ONLY, mImageBytes, 0, &retCode);
+            CL_MEM_WRITE_ONLY, mImageBytes, NULL, &retCode);
         if (retCode != CL_SUCCESS) {
             ERROR_MESSAGE("Create buffer for output image failed! Error code = " << retCode);
             return false;
         }
 
-		unsigned int pixelNum = imgWidth*imgHeight;
+		size_t pixelNum = imgWidth*imgHeight;
 		mSobelMiddleResult = clCreateBuffer(mContext,
-			CL_MEM_WRITE_ONLY, pixelNum *sizeof(float), 0, &retCode);
+			CL_MEM_WRITE_ONLY, pixelNum *sizeof(float), NULL, &retCode);
 		if (retCode != CL_SUCCESS) {
 			ERROR_MESSAGE("Create buffer for sobel middle result failed! Error code = " << retCode);
 			return false;
 		}
 
-		mMinMaxThreadNumPerBlock = (pixelNum < mMinMaxKernelLocalSize) ? next_pow2(pixelNum) : mMinMaxKernelLocalSize;
-		mMinMaxBlockNum = (pixelNum + mMinMaxThreadNumPerBlock - 1) / mMinMaxThreadNumPerBlock;
+		mMinMaxThreadNumPerBlock = (pixelNum < mMinMaxKernelLocalSize) ? next_pow2(static_cast<unsigned int>(pixelNum)) : mMinMaxKernelLocalSize;
+		mMinMaxBlockNum = static_cast<unsigned int>(pixelNum + mMinMaxThreadNumPerBlock - 1) / mMinMaxThreadNumPerBlock;
 		if (mMinMaxBlockNum == 0) {
 			ERROR_MESSAGE("Block number of minmax kernel is 0!");
 			return false;
 		}
 
 		mMinValues = clCreateBuffer(mContext,
-			CL_MEM_WRITE_ONLY, mMinMaxBlockNum * sizeof(float), 0, &retCode);
+			CL_MEM_WRITE_ONLY, mMinMaxBlockNum * sizeof(float), NULL, &retCode);
 		if (retCode != CL_SUCCESS) {
 			ERROR_MESSAGE("Create buffer for min results failed! Error code = " << retCode);
 			return false;
 		}
 
 		mMaxValues = clCreateBuffer(mContext,
-			CL_MEM_WRITE_ONLY, mMinMaxBlockNum * sizeof(float), 0, &retCode);
+			CL_MEM_WRITE_ONLY, mMinMaxBlockNum * sizeof(float), NULL, &retCode);
 		if (retCode != CL_SUCCESS) {
 			ERROR_MESSAGE("Create buffer for max results failed! Error code = " << retCode);
 			return false;
