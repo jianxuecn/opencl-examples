@@ -62,12 +62,10 @@ ImageProcessingDialog::ImageProcessingDialog(QWidget *parent) :
     this->move(10, 10);
     mIsUpdatingUI = false;
 
-    mSourceWindow = new ImageViewWidget();
-    mSourceWindow->setWindowTitle("Source Image");
+    mSourceWindow = new ImageViewWidget(tr("Source Image"));
     //mSourceWindow->move(this->x()+this->frameGeometry().width(), this->y());
 
-    mResultWindow = new ImageViewWidget();
-    mResultWindow->setWindowTitle("Result Image");
+    mResultWindow = new ImageViewWidget(tr("Result Image"));
     //mResultWindow->move(mSourceWindow->x()+mSourceWindow->frameGeometry().width(), mSourceWindow->y());
 
     mLogWindow = new LogWidget();
@@ -420,7 +418,7 @@ bool ImageProcessingDialog::buildOCLMemoryObjects()
         size_t imgWidth = mSourceImage.width();
         size_t imgHeight = mSourceImage.height();
         cl_image_format imgFormat;
-        imgFormat.image_channel_order = CL_ARGB;
+        imgFormat.image_channel_order = CL_BGRA;
         imgFormat.image_channel_data_type = CL_UNORM_INT8;
         //mImageIn = clCreateImage2D(mContext, CL_MEM_READ_ONLY, &imgFormat, imgWidth, imgHeight, 0, NULL, &retCode);
         cl_image_desc imgDesc;
@@ -674,7 +672,7 @@ void ImageProcessingDialog::runNormalGradient()
             pout[0] = (uchar)(sqrt(gradx[0]*gradx[0]+grady[0]*grady[0]));
             pout[1] = (uchar)(sqrt(gradx[1]*gradx[1]+grady[1]*grady[1]));
             pout[2] = (uchar)(sqrt(gradx[2]*gradx[2]+grady[2]*grady[2]));
-            pout[3] = (uchar)(sqrt(gradx[3]*gradx[3]+grady[3]*grady[3]));
+            pout[3] = 255;//(uchar)(sqrt(gradx[3]*gradx[3]+grady[3]*grady[3]));
             pout += 4;
         }
     }

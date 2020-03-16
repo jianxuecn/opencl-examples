@@ -14,13 +14,14 @@ class ImageViewWidget : public ToolWindow
     Q_OBJECT
 
 public:
-    explicit ImageViewWidget(QWidget *parent = 0);
+    explicit ImageViewWidget(QString const &title, QWidget *parent = 0);
     ~ImageViewWidget();
 
     void showImage(QImage const &img);
 
 private:
     Ui::ImageViewWidget *ui;
+    QString mTitle;
 };
 
 #endif // IMAGEVIEWWIDGET_H
