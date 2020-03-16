@@ -30,6 +30,7 @@ cl_int get_platform_id(cl_platform_id &selectedPlatformID, bool &isNV)
             errNum = clGetPlatformIDs(platformCount, platformIDs, NULL);
             cl_uint nvIdx = platformCount;
             cl_uint amdIdx = platformCount;
+            cl_uint appleIdx = platformCount;
             for (cl_uint i = 0; i < platformCount; ++i) {
                 errNum = clGetPlatformInfo(platformIDs[i], CL_PLATFORM_NAME, 1024, &chBuffer, NULL);
                 if (errNum == CL_SUCCESS) {
@@ -39,10 +40,11 @@ cl_int get_platform_id(cl_platform_id &selectedPlatformID, bool &isNV)
                         //LOG_INFO("Selected platform: " << chBuffer);
                         nvIdx = i;
                         //break;
-                    }
-                    if (strstr(chBuffer, "AMD") != NULL) {
+                    } else if (strstr(chBuffer, "AMD") != NULL) {
                         amdIdx = i;
                         //break;
+                    } else if (strstr(chBuffer, "Apple") != NULL) {
+                        appleIdx = i;
                     }
                 }
             }
@@ -52,6 +54,8 @@ cl_int get_platform_id(cl_platform_id &selectedPlatformID, bool &isNV)
                 isNV = true;
             } else if (amdIdx < platformCount) {
                 selectedPlatformID = platformIDs[amdIdx];
+            } else if (appleIdx < platformCount) {
+                selectedPlatformID = platformIDs[appleIdx];
             }
 
             // default to zeroeth platform if NVIDIA or AMD not found
@@ -319,11 +323,13 @@ void show_opencl_device_info(cl_device_id device)
 
     cl_uint num;
     clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(num), &num, NULL);
+    LOG_INFO("Max work item dimensions: " << num);
     size_t workItemSizes[3];
     clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(size_t)*num, workItemSizes, NULL);
     std::ostringstream msg;
     for (cl_uint i=0; i<num; ++i) msg << workItemSizes[i] << " ";
-    LOG_INFO("Max work item sizes: " << msg.str());
+    LOG_INFO("Max work item sizes: " << msg.str().c_str());
+    //LOG_INFO("Max work item sizes: " << workItemSizes[0] << " " << workItemSizes[1] << " " << workItemSizes[2]);
 
     size_t workgroup_size;
     clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(workgroup_size), &workgroup_size, NULL);

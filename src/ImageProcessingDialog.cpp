@@ -7,6 +7,7 @@
 #include "Timer.h"
 
 #include <QFileDialog>
+#include <QDir>
 
 #include <math.h>
 
@@ -287,7 +288,8 @@ bool ImageProcessingDialog::initOCLContext()
     }
 
     cl_program program;
-    if (load_cl_source_from_file(mContext, "image_processing.cl", program)) {
+    QDir filterDir(QApplication::applicationDirPath()+QDir::separator()+OCL_FILTERS_SUB_DIR);
+    if (load_cl_source_from_file(mContext, filterDir.absoluteFilePath("image_processing.cl").toLocal8Bit().constData(), program)) {
         mProgram = program;
     } else {
         return false;
@@ -422,6 +424,7 @@ bool ImageProcessingDialog::buildOCLMemoryObjects()
         imgFormat.image_channel_data_type = CL_UNORM_INT8;
         //mImageIn = clCreateImage2D(mContext, CL_MEM_READ_ONLY, &imgFormat, imgWidth, imgHeight, 0, NULL, &retCode);
         cl_image_desc imgDesc;
+        memset(&imgDesc, 0, sizeof(cl_image_desc)); // !!IMPORTANT!!
         imgDesc.image_type = CL_MEM_OBJECT_IMAGE2D;
         imgDesc.image_width = imgWidth;
         imgDesc.image_height = imgHeight;

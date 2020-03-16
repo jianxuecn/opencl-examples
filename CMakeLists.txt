@@ -81,6 +81,7 @@ include_directories(
 )
 
 set(OCL_EXAMPLE_SRCS ${OCL_EXAMPLE_HEADER_FILES} ${OCL_EXAMPLE_SOURCE_FILES} ${OCL_EXAMPLE_MOC_SRCS} ${OCL_EXAMPLE_UI_FILES})
+set(OCL_PROGRAM_FILE ${PROJECT_SOURCE_DIR}/filters/image_processing.cl)
 
 if(WIN32)
   include(InstallDependencies)
@@ -88,6 +89,9 @@ if(WIN32)
   #install icu dlls required by Qt5
   if(USE_QT5)
     install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins platforms minimal offscreen windows)
+    install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins styles windowsvistastyle)
+    install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins imageformats gif ico jpeg svg tga tiff wbmp webp)
+    install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins iconengines svgicon)
     #install_icu_dll(${QT_USED_DLL_DIR} icudt53 icuin53 icuuc53)
   endif(USE_QT5)
   add_executable(${TARGETNAME} WIN32 ${OCL_EXAMPLE_SRCS})
@@ -105,11 +109,12 @@ elseif(APPLE)
   # These variables are specific to our plist and are NOT standard CMake variables
   #set(MACOSX_BUNDLE_NSMAIN_NIB_FILE "MainMenu")
   #set(MACOSX_BUNDLE_NSPRINCIPAL_CLASS "NSApplication")
-  #set(MACOSX_BUNDLE_ICON_FILE BlockAni.icns)
-  #set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/res/BlockAni.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-  #set(BLOCKANI_RES ${CMAKE_CURRENT_SOURCE_DIR}/res/BlockAni.icns)
+  #set(MACOSX_BUNDLE_ICON_FILE OCLExample.icns)
+  #set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/res/OCLExample.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  #set(OCLEXAMPLE_RES ${CMAKE_CURRENT_SOURCE_DIR}/res/OCLExample.icns)
+  set_source_files_properties(${OCL_PROGRAM_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/filters)
 
-  add_executable(${TARGETNAME} MACOSX_BUNDLE ${OCL_EXAMPLE_SRCS})
+  add_executable(${TARGETNAME} MACOSX_BUNDLE ${OCL_EXAMPLE_SRCS} ${OCL_PROGRAM_FILE})
 
   # Set a custom plist file for the app bundle
   set_target_properties(${TARGETNAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/Info.plist.in)
@@ -142,10 +147,8 @@ install(TARGETS ${TARGETNAME}
   RUNTIME DESTINATION . CONFIGURATIONS Release None ""
 )
 
-set(OCL_PROGRAM_FILE ${PROJECT_SOURCE_DIR}/filters/image_processing.cl)
-
 if(APPLE)
-  install(FILES ${OCL_PROGRAM_FILE} DESTINATION . COMPONENT Runtime)
+  #install(FILES ${OCL_PROGRAM_FILE} DESTINATION . COMPONENT Runtime)
 else(APPLE)
   install(FILES ${OCL_PROGRAM_FILE} DESTINATION . CONFIGURATIONS Release None "")
 endif(APPLE)
@@ -158,6 +161,8 @@ endif(WIN32)
 
 # deal with dependencies
 if(APPLE)
+  install(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir} COMPONENT Runtime)
+  install(DIRECTORY "${QT_PLUGINS_DIR}/styles" DESTINATION ${plugin_dest_dir} COMPONENT Runtime)
   install(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir} COMPONENT Runtime)
   #install(FILES "${QT_PROPERTYBROWSER_LIB_REL}" DESTINATION ${plugin_dest_dir} COMPONENT Runtime)
   set(DEP_DIRS ${QT_LIBRARY_DIRS})
@@ -170,8 +175,13 @@ if(APPLE)
 )
 endif(APPLE)
 
-add_custom_command(TARGET ${TARGETNAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${OCL_PROGRAM_FILE} $<TARGET_FILE_DIR:${TARGETNAME}>)
-
+if(APPLE)
+else(APPLE)
+  add_custom_command(TARGET ${TARGETNAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${TARGETNAME}>/filters)
+  add_custom_command(TARGET ${TARGETNAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${OCL_PROGRAM_FILE} $<TARGET_FILE_DIR:${TARGETNAME}>/filters)
+endif(APPLE)
 # setup CPack
 set(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR}" "${TARGETNAME}" "ALL" "/")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${TARGETNAME} - A visualization software for animation of the block system.")

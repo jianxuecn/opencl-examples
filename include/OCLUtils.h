@@ -3,8 +3,10 @@
 
 #if defined(__APPLE__)
 #include <OpenCL/opencl.h>
+#define OCL_FILTERS_SUB_DIR "../Resources/filters"
 #else
 #include <CL/opencl.h>
+#define OCL_FILTERS_SUB_DIR "filters"
 #endif
 
 cl_int get_platform_id(cl_platform_id &selectedPlatformID, bool &isNV);
