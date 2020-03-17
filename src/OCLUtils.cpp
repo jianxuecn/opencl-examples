@@ -116,7 +116,7 @@ cl_int get_device_id(cl_platform_id platform, cl_device_id &selectedDeviceID, bo
     cl_uint nvIdx = deviceCount;
     cl_uint amdIdx = deviceCount;
     for (cl_uint i = 0; i < deviceCount; ++i) {
-        errNum = clGetDeviceInfo(deviceIDs[i], CL_DEVICE_NAME, sizeof(chBuffer), &chBuffer, NULL);
+        errNum = clGetDeviceInfo(deviceIDs[i], CL_DEVICE_VENDOR, sizeof(chBuffer), &chBuffer, NULL);
         if (errNum == CL_SUCCESS) {
             LOG_INFO("Detected device " << i+1 << ": " << chBuffer);
             if(strstr(chBuffer, "NVIDIA") != NULL) {
@@ -237,6 +237,7 @@ inline int convert_sm_ver_to_cores(int major, int minor)
         { 0x62, 128 }, // Pascal Generation (SM 6.2) GP10x class
         { 0x70,  64 }, // Volta Generation (SM 7.0) GV100 class
         { 0x72,  64 }, // Volta Generation (SM 7.2) GV11b class
+        { 0x75,  64 },
         {   -1,  -1 }
     };
 
