@@ -18,7 +18,7 @@ include(PrepareQt)
 set(OCL_EXAMPLE_USE_QT5 ${USE_QT5})
 
 if(USE_QT5)
-  PREPARE_QT5(Core Gui Widgets OpenGL Xml Sql LinguistTools)
+  PREPARE_QT5(Core Gui Widgets)
 else(USE_QT5)
   set(QT_USE_QTXML 1)
   set(QT_USE_QTOPENGL 1)
