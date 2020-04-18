@@ -3,8 +3,8 @@
 #include <QPixmap>
 #include <QImage>
 
-int const IMAGE_DISPLAY_WIDTH = 1920;
-int const IMAGE_DISPLAY_HEIGHT = 1080;
+int const IMAGE_DISPLAY_WIDTH = 800;
+int const IMAGE_DISPLAY_HEIGHT = 600;
 
 ImageViewWidget::ImageViewWidget(QString const &title, QWidget *parent) :
     ToolWindow(parent),
