@@ -8,7 +8,10 @@ if(COMMAND CMAKE_POLICY)
   cmake_policy(SET CMP0053 NEW)
 endif(COMMAND CMAKE_POLICY)
 
-project(ocl_example VERSION 1.0.0)
+#set(CMAKE_OSX_DEPLOYMENT_TARGET "macOS 10.15" CACHE STRING "OSX deployment target")
+set(CMAKE_OSX_SYSROOT macosx)
+
+project(OCLexample VERSION 1.0.0)
 
 set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/dist" CACHE PATH "IUltra install prefix" FORCE)
 set(CMAKE_DEBUG_POSTFIX "d")
@@ -22,7 +25,7 @@ if(USE_QT5)
 else(USE_QT5)
   set(QT_USE_QTXML 1)
   set(QT_USE_QTOPENGL 1)
-  PREPARE_QT4(4.8.0 Core Gui OpenGL Xml Sql)
+  PREPARE_QT4(4.8.0 Core Gui)
 endif(USE_QT5)
 
 find_package(OpenCL REQUIRED)
@@ -84,6 +87,7 @@ set(OCL_EXAMPLE_SRCS ${OCL_EXAMPLE_HEADER_FILES} ${OCL_EXAMPLE_SOURCE_FILES} ${O
 set(OCL_PROGRAM_FILE ${PROJECT_SOURCE_DIR}/filters/image_processing.cl)
 
 if(WIN32)
+  file(GLOB OCL_EXAMPLE_RES res/*.rc)
   include(InstallDependencies)
   install_qt_dll(${QT_VER} ${QT_USED_DLL_DIR} ${QT_USED_DLL_NAMES})
   #install icu dlls required by Qt5
@@ -94,7 +98,7 @@ if(WIN32)
     install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins iconengines svgicon)
     #install_icu_dll(${QT_USED_DLL_DIR} icudt53 icuin53 icuuc53)
   endif(USE_QT5)
-  add_executable(${TARGETNAME} WIN32 ${OCL_EXAMPLE_SRCS})
+  add_executable(${TARGETNAME} WIN32 ${OCL_EXAMPLE_SRCS} ${OCL_EXAMPLE_RES})
 elseif(APPLE)
   # Set the OS X Bundle specific CMake variables which will be used to populate the plist for
   # the application bundle
@@ -104,17 +108,18 @@ elseif(APPLE)
   set(MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME})
   set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
   set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
-  set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2014. All Rights Reserved.")
+  set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2017-2020 Jian Xue (jian.xue.cn@gmail.com), All Rights Reserved.")
 
   # These variables are specific to our plist and are NOT standard CMake variables
   #set(MACOSX_BUNDLE_NSMAIN_NIB_FILE "MainMenu")
   #set(MACOSX_BUNDLE_NSPRINCIPAL_CLASS "NSApplication")
-  #set(MACOSX_BUNDLE_ICON_FILE OCLExample.icns)
-  #set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/res/OCLExample.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  set(MACOSX_BUNDLE_ICON_FILE OCLExample.icns)
+  set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/res/OCLExample.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
   #set(OCLEXAMPLE_RES ${CMAKE_CURRENT_SOURCE_DIR}/res/OCLExample.icns)
   set_source_files_properties(${OCL_PROGRAM_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/filters)
+  set(OCL_EXAMPLE_RES ${CMAKE_CURRENT_SOURCE_DIR}/res/OCLExample.icns)
 
-  add_executable(${TARGETNAME} MACOSX_BUNDLE ${OCL_EXAMPLE_SRCS} ${OCL_PROGRAM_FILE})
+  add_executable(${TARGETNAME} MACOSX_BUNDLE ${OCL_EXAMPLE_SRCS} ${OCL_PROGRAM_FILE} ${OCL_EXAMPLE_RES})
 
   # Set a custom plist file for the app bundle
   set_target_properties(${TARGETNAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/Info.plist.in)
