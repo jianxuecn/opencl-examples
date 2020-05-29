@@ -398,7 +398,7 @@ bool ImageProcessingDialog::buildOCLMemoryObjects()
 {
     cl_int retCode;
 
-    if (mImageBytes != mSourceImage.byteCount()) {
+    if (mImageBytes != mSourceImage.sizeInBytes()) {
         if (mImageDataIn) { clReleaseMemObject(mImageDataIn); mImageDataIn = 0; }
         if (mImageIn) { clReleaseMemObject(mImageIn); mImageIn = 0; }
         if (mImageDataOut) { clReleaseMemObject(mImageDataOut); mImageDataOut = 0; }
@@ -406,7 +406,7 @@ bool ImageProcessingDialog::buildOCLMemoryObjects()
 		if (mMinValues) { clReleaseMemObject(mMinValues); mMinValues = 0; }
 		if (mMaxValues) { clReleaseMemObject(mMaxValues); mMaxValues = 0; }
 
-        mImageBytes = mSourceImage.byteCount();
+        mImageBytes = mSourceImage.sizeInBytes();
 
         mImageDataIn = clCreateBuffer(mContext,
             CL_MEM_READ_ONLY, mImageBytes, 0, &retCode);
