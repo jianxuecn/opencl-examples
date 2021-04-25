@@ -123,7 +123,7 @@ cl_int get_device_id(cl_platform_id platform, cl_device_id &selectedDeviceID, bo
                 //selectedPlatformID = platformIDs[i];
                 //LOG_INFO("Selected platform: " << chBuffer);
                 nvIdx = i;
-                //break;
+                break;
             }
             if (strstr(chBuffer, "AMD") != NULL) {
                 amdIdx = i;

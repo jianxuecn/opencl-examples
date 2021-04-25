@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.8)
 if(COMMAND CMAKE_POLICY)
   # Works around warnings libraries linked against that don't
   # have absolute paths (e.g. -lOgreMain)
