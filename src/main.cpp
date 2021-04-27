@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QLocale>
+#include <QMessageBox>
 
 int main(int argc, char *argv[])
 {
@@ -19,12 +20,19 @@ int main(int argc, char *argv[])
     ImageProcessingDialog mainDlg;
     mainDlg.show();
 
-    LoggerPointer logger(new ExampleLogger("OCLExample.log", mainDlg.logWidget()));
+    int retCode = -1;
+    QDir logDir(QDir::homePath() + QDir::separator() + ".OCLExample");
+    if (!logDir.exists()) {
+        if (!logDir.mkpath(logDir.absolutePath())) {
+            QMessageBox::critical(0, "Error", QString("Fail to access the directory: %1").arg(logDir.absolutePath()));
+            return retCode;
+        }
+    }
+    LoggerPointer logger(new ExampleLogger(logDir.absoluteFilePath("OCLExample.log").toLocal8Bit().constData(), mainDlg.logWidget()));
     LogManager::instance().setLogger(logger);
 
     LOG_INFO("Start!");
 
-    int retCode = -1;
     if (mainDlg.initOCLContext()) {    }
     retCode = app.exec();
     LogManager::instance().stopLog();

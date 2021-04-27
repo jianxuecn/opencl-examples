@@ -7,6 +7,7 @@
 #include "Timer.h"
 
 #include <QFileDialog>
+#include <QDir>
 
 #include <math.h>
 
@@ -61,12 +62,10 @@ ImageProcessingDialog::ImageProcessingDialog(QWidget *parent) :
     this->move(10, 10);
     mIsUpdatingUI = false;
 
-    mSourceWindow = new ImageViewWidget();
-    mSourceWindow->setWindowTitle("Source Image");
+    mSourceWindow = new ImageViewWidget(tr("Source Image"));
     //mSourceWindow->move(this->x()+this->frameGeometry().width(), this->y());
 
-    mResultWindow = new ImageViewWidget();
-    mResultWindow->setWindowTitle("Result Image");
+    mResultWindow = new ImageViewWidget(tr("Result Image"));
     //mResultWindow->move(mSourceWindow->x()+mSourceWindow->frameGeometry().width(), mSourceWindow->y());
 
     mLogWindow = new LogWidget();
@@ -148,7 +147,7 @@ bool ImageProcessingDialog::updateGK()
         this->clearGK();
         
         mGKRadius = ui->spinBoxGKRadius->value();
-        size_t size = (mGKRadius<<1)+1;
+        unsigned int size = (mGKRadius<<1)+1;
         mGKMask = new float[size*size];
         float sx = ui->doubleSpinBoxGKSigmaX->value();
         float sy = ui->doubleSpinBoxGKSigmaY->value();
@@ -287,7 +286,8 @@ bool ImageProcessingDialog::initOCLContext()
     }
 
     cl_program program;
-    if (load_cl_source_from_file(mContext, "image_processing.cl", program)) {
+    QDir filterDir(QApplication::applicationDirPath()+QDir::separator()+OCL_FILTERS_SUB_DIR);
+    if (load_cl_source_from_file(mContext, filterDir.absoluteFilePath("image_processing.cl").toLocal8Bit().constData(), program)) {
         mProgram = program;
     } else {
         return false;
@@ -398,7 +398,7 @@ bool ImageProcessingDialog::buildOCLMemoryObjects()
 {
     cl_int retCode;
 
-    if (mImageBytes != mSourceImage.byteCount()) {
+    if (mImageBytes != mSourceImage.sizeInBytes()) {
         if (mImageDataIn) { clReleaseMemObject(mImageDataIn); mImageDataIn = 0; }
         if (mImageIn) { clReleaseMemObject(mImageIn); mImageIn = 0; }
         if (mImageDataOut) { clReleaseMemObject(mImageDataOut); mImageDataOut = 0; }
@@ -406,7 +406,7 @@ bool ImageProcessingDialog::buildOCLMemoryObjects()
 		if (mMinValues) { clReleaseMemObject(mMinValues); mMinValues = 0; }
 		if (mMaxValues) { clReleaseMemObject(mMaxValues); mMaxValues = 0; }
 
-        mImageBytes = mSourceImage.byteCount();
+        mImageBytes = mSourceImage.sizeInBytes();
 
         mImageDataIn = clCreateBuffer(mContext,
             CL_MEM_READ_ONLY, mImageBytes, 0, &retCode);
@@ -417,49 +417,57 @@ bool ImageProcessingDialog::buildOCLMemoryObjects()
 
         size_t imgWidth = mSourceImage.width();
         size_t imgHeight = mSourceImage.height();
-        cl_image_format volumeFormat;
-        volumeFormat.image_channel_order = CL_ARGB;
-        volumeFormat.image_channel_data_type = CL_UNORM_INT8;
-        mImageIn = clCreateImage2D(mContext,
-            CL_MEM_READ_ONLY, &volumeFormat,
-            imgWidth, imgHeight, 0,
-            0, &retCode);
+        cl_image_format imgFormat;
+        imgFormat.image_channel_order = CL_BGRA;
+        imgFormat.image_channel_data_type = CL_UNORM_INT8;
+        //mImageIn = clCreateImage2D(mContext, CL_MEM_READ_ONLY, &imgFormat, imgWidth, imgHeight, 0, NULL, &retCode);
+        cl_image_desc imgDesc;
+        memset(&imgDesc, 0, sizeof(cl_image_desc)); // !!IMPORTANT!!
+        imgDesc.image_type = CL_MEM_OBJECT_IMAGE2D;
+        imgDesc.image_width = imgWidth;
+        imgDesc.image_height = imgHeight;
+        imgDesc.image_row_pitch = 0;
+        imgDesc.image_slice_pitch = 0;
+        imgDesc.num_mip_levels = 0;
+        imgDesc.num_samples = 0;
+        imgDesc.buffer = NULL;
+        mImageIn = clCreateImage(mContext, CL_MEM_READ_ONLY, &imgFormat, &imgDesc, NULL, &retCode);
         if (retCode != CL_SUCCESS) {
             ERROR_MESSAGE("Create image 2D for input image failed! Image size = " << imgWidth << "x" << imgHeight << ". " <<  "Error code = " << retCode);
             return false;
         }
 
         mImageDataOut = clCreateBuffer(mContext,
-            CL_MEM_WRITE_ONLY, mImageBytes, 0, &retCode);
+            CL_MEM_WRITE_ONLY, mImageBytes, NULL, &retCode);
         if (retCode != CL_SUCCESS) {
             ERROR_MESSAGE("Create buffer for output image failed! Error code = " << retCode);
             return false;
         }
 
-		unsigned int pixelNum = imgWidth*imgHeight;
+		size_t pixelNum = imgWidth*imgHeight;
 		mSobelMiddleResult = clCreateBuffer(mContext,
-			CL_MEM_WRITE_ONLY, pixelNum *sizeof(float), 0, &retCode);
+			CL_MEM_WRITE_ONLY, pixelNum *sizeof(float), NULL, &retCode);
 		if (retCode != CL_SUCCESS) {
 			ERROR_MESSAGE("Create buffer for sobel middle result failed! Error code = " << retCode);
 			return false;
 		}
 
-		mMinMaxThreadNumPerBlock = (pixelNum < mMinMaxKernelLocalSize) ? next_pow2(pixelNum) : mMinMaxKernelLocalSize;
-		mMinMaxBlockNum = (pixelNum + mMinMaxThreadNumPerBlock - 1) / mMinMaxThreadNumPerBlock;
+		mMinMaxThreadNumPerBlock = (pixelNum < mMinMaxKernelLocalSize) ? next_pow2(static_cast<unsigned int>(pixelNum)) : mMinMaxKernelLocalSize;
+		mMinMaxBlockNum = static_cast<unsigned int>(pixelNum + mMinMaxThreadNumPerBlock - 1) / mMinMaxThreadNumPerBlock;
 		if (mMinMaxBlockNum == 0) {
 			ERROR_MESSAGE("Block number of minmax kernel is 0!");
 			return false;
 		}
 
 		mMinValues = clCreateBuffer(mContext,
-			CL_MEM_WRITE_ONLY, mMinMaxBlockNum * sizeof(float), 0, &retCode);
+			CL_MEM_WRITE_ONLY, mMinMaxBlockNum * sizeof(float), NULL, &retCode);
 		if (retCode != CL_SUCCESS) {
 			ERROR_MESSAGE("Create buffer for min results failed! Error code = " << retCode);
 			return false;
 		}
 
 		mMaxValues = clCreateBuffer(mContext,
-			CL_MEM_WRITE_ONLY, mMinMaxBlockNum * sizeof(float), 0, &retCode);
+			CL_MEM_WRITE_ONLY, mMinMaxBlockNum * sizeof(float), NULL, &retCode);
 		if (retCode != CL_SUCCESS) {
 			ERROR_MESSAGE("Create buffer for max results failed! Error code = " << retCode);
 			return false;
@@ -664,7 +672,7 @@ void ImageProcessingDialog::runNormalGradient()
             pout[0] = (uchar)(sqrt(gradx[0]*gradx[0]+grady[0]*grady[0]));
             pout[1] = (uchar)(sqrt(gradx[1]*gradx[1]+grady[1]*grady[1]));
             pout[2] = (uchar)(sqrt(gradx[2]*gradx[2]+grady[2]*grady[2]));
-            pout[3] = (uchar)(sqrt(gradx[3]*gradx[3]+grady[3]*grady[3]));
+            pout[3] = 255;//(uchar)(sqrt(gradx[3]*gradx[3]+grady[3]*grady[3]));
             pout += 4;
         }
     }

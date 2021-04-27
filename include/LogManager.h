@@ -29,11 +29,11 @@ protected:
     LoggerPointer mLogger;
 };
 
-#define LOG_INFO(x)    do { std::ostringstream msg; msg << "|    INFO | " << x; LogManager::instance().appendGenericMessage(msg.str().c_str()); } while (0)
-#define LOG_DEBUG(x)   do { std::ostringstream msg; msg << "|   DEBUG | in " __FILE__ ", line " << __LINE__ << ": "<< x; LogManager::instance().appendDebugMessage(msg.str().c_str()); } while (0)
-#define LOG_ERROR(x)   do { std::ostringstream msg; msg << "|   ERROR | in " __FILE__ ", line " << __LINE__ << ": "<< x; LogManager::instance().appendErrorMessage(msg.str().c_str()); } while (0)
-#define LOG_WARNING(x) do { std::ostringstream msg; msg << "| WARNING | in " __FILE__ ", line " << __LINE__ << ": "<< x; LogManager::instance().appendWarningMessage(msg.str().c_str()); } while (0)
-#define LOG_SEGMENT(x) do { std::ostringstream msg; msg << x; LogManager::instance().appendSegment(msg.str().c_str()); } while (0)
+#define LOG_INFO(x)    do { std::ostringstream _log_msg; _log_msg << "|    INFO | " << x; LogManager::instance().appendGenericMessage(_log_msg.str().c_str()); } while (0)
+#define LOG_DEBUG(x)   do { std::ostringstream _log_msg; _log_msg << "|   DEBUG | in " __FILE__ ", line " << __LINE__ << ": "<< x; LogManager::instance().appendDebugMessage(_log_msg.str().c_str()); } while (0)
+#define LOG_ERROR(x)   do { std::ostringstream _log_msg; _log_msg << "|   ERROR | in " __FILE__ ", line " << __LINE__ << ": "<< x; LogManager::instance().appendErrorMessage(_log_msg.str().c_str()); } while (0)
+#define LOG_WARNING(x) do { std::ostringstream _log_msg; _log_msg << "| WARNING | in " __FILE__ ", line " << __LINE__ << ": "<< x; LogManager::instance().appendWarningMessage(_log_msg.str().c_str()); } while (0)
+#define LOG_SEGMENT(x) do { std::ostringstream _log_msg; _log_msg << x; LogManager::instance().appendSegment(_log_msg.str().c_str()); } while (0)
 
 #define GENERIC_MESSAGE(x) LOG_INFO(x)
 #define DEBUG_MESSAGE(x) LOG_DEBUG(x)

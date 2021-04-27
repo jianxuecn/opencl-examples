@@ -50,6 +50,7 @@ __kernel void k_gradient_uchar4(__global uchar4 *dataOut,
     const float4 grad_mag = sqrt(gradx*gradx+grady*grady);
     const uint outidx = y * imageWidth + x;
     const uchar4 final = convert_uchar4(grad_mag);
+    final.w = 255;
     //vstore4(final, outidx, dataOut);
     dataOut[outidx] = final;
 }
@@ -79,7 +80,7 @@ __kernel void k_smooth_gaussian_image(__global uchar4 *dataOut,
     const uint outidx = y * imageWidth + x;
     const uchar4 final = convert_uchar4(sum*255.0f);
     //vstore4(final.wxyz, outidx, dataOut);
-    dataOut[outidx] = final.wxyz;
+    dataOut[outidx] = final.zyxw; //i.e. final.bgra
 }
 
 __kernel void k_gradient_image(__global uchar4 *dataOut,
@@ -103,8 +104,9 @@ __kernel void k_gradient_image(__global uchar4 *dataOut,
     const float4 grad_mag = sqrt(gradx*gradx+grady*grady);
     const uint outidx = y * imageWidth + x;
     const uchar4 final = convert_uchar4(grad_mag*255.0f);
+    final.w = 255;
     //vstore4(final.wxyz, outidx, dataOut);
-    dataOut[outidx] = final.wxyz;
+    dataOut[outidx] = final.zyxw; //i.e. final.bgra
 }
 
 // Implementation below is equivalent to linear 2D convolutions for H and V compoonents with:
