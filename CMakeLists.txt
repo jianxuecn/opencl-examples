@@ -13,6 +13,10 @@ set(CMAKE_OSX_SYSROOT macosx)
 
 project(OCLexample VERSION 1.0.0)
 
+if(EXISTS ${PROJECT_SOURCE_DIR}/local-dependencies.cmake)
+  include(local-dependencies.cmake)
+endif()
+
 set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/dist" CACHE PATH "IUltra install prefix" FORCE)
 set(CMAKE_DEBUG_POSTFIX "d")
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
