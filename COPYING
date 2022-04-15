@@ -1,6 +1,7 @@
-"CGQtAppBase" (an example of CG App based on OpenGL and Qt 
- for Computer Graphics Course of SES, UCAS) is made available
- under the GNU General Public License (v3).
+"opencl-examples" (a set of image processing examples using OpenCL 
+acceleration and Qt GUI for the Cloud Computing Course and Computer
+Graphics Course at SES, UCAS) is made available under the 
+GNU General Public License (v3).
 
 Copyright (c) 2020 Xue Jian (xuejian@ucas.ac.cn)
 
