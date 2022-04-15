@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This project provide a set of image processing examples using OpenCL acceleration and Qt GUI for the *Cloud Computing Course* and *Computer Graphics Course* in School of Engineering Science (SES), University of Chinese Academy of Sciences (UCAS).
+This project provide a set of image processing examples using OpenCL acceleration and Qt GUI for the *Cloud Computing Course* and *Computer Graphics Course* at the School of Engineering Science (SES), University of Chinese Academy of Sciences (UCAS).
 
 This projcet demonstrates how to write parallel programs for fast image processing on GPUs via OpenCL, together with a Qt based GUI. Following main topics have been included and implemented:
 
