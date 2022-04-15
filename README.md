@@ -2,9 +2,9 @@
 
 ## Introduction
 
-This is a set of image processing examples using OpenCL acceleration and Qt GUI for the *Cloude Computing Course* and *Computer Graphics Course* in School of Engineering Science (SES), University of Chinese Academy of Sciences (UCAS).
+This project provide a set of image processing examples using OpenCL acceleration and Qt GUI for the *Cloud Computing Course* and *Computer Graphics Course* in School of Engineering Science (SES), University of Chinese Academy of Sciences (UCAS).
 
-It is demonstrated in this project how to write a parallel program for fast image processing based on OpenCL on GPU, together with a Qt based GUI. Following main topics have been included and implemented:
+This projcet demonstrates how to write parallel programs for fast image processing on GPUs via OpenCL, together with a Qt based GUI. Following main topics have been included and implemented:
 
 1. Finding the OpenCL platforms and devices in a computer system;
 2. Setting up the OpenCL context and interacting with the OpenCL device through the context;
@@ -15,7 +15,7 @@ It is demonstrated in this project how to write a parallel program for fast imag
 ## Dependencies
 
 1. **Qt**: Cross-platform Software Development Framework (https://www.qt.io/) under GNU LGPL license (see https://www.qt.io/download-open-source);
-4. **OpenCL**: Open Computing Language, an open standard for cross-platform, parallel programming of diverse accelerators (https://www.khronos.org/opencl/). The dev files for OpenCL are probably provided by the hardware vendor in some kind of dev kit, e.g. CUDA from NVIDIA.
+2. **OpenCL**: Open Computing Language, an open standard for cross-platform, parallel programming of diverse accelerators (https://www.khronos.org/opencl/). The dev files for OpenCL are probably provided by the hardware vendor in some kind of dev kit, e.g. CUDA from NVIDIA.
 
 ## Instructions for Use
 
@@ -32,6 +32,4 @@ It is demonstrated in this project how to write a parallel program for fast imag
 
 2. Open CMakeLists.txt in the source directory by Qt Creator, then choose appropriate Qt Kit (with compiler) to setup the local project.
 
-
 ### Build the project and have fun!
-
