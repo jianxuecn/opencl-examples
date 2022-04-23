@@ -133,6 +133,7 @@ ImageProcessingDialog::ImageProcessingDialog(QWidget *parent) :
     mGradientImageKernel = 0;
 	mSobelKernel = 0;
 	mMinMaxKernel = 0;
+    mMinMaxIterKernel = 0;
 	mScalePixelsKernel = 0;
 
     mImageBytes = 0;
@@ -360,6 +361,12 @@ bool ImageProcessingDialog::initOCLContext()
 		return false;
 	}
 
+    mMinMaxIterKernel = clCreateKernel(mProgram, "k_min_max_iter", &retCode);
+    if (retCode != CL_SUCCESS) {
+        ERROR_MESSAGE("Cannot create minmaxiter kernel! Error code = " << retCode);
+        return false;
+    }
+
 	mScalePixelsKernel = clCreateKernel(mProgram, "k_scale_pixels", &retCode);
 	if (retCode != CL_SUCCESS) {
 		ERROR_MESSAGE("Cannot create scale pixels kernel! Error code = " << retCode);
@@ -402,6 +409,7 @@ void ImageProcessingDialog::clearOCLContext()
     if (mGradientImageKernel) { clReleaseKernel(mGradientImageKernel); mGradientImageKernel = 0; }
 	if (mSobelKernel) { clReleaseKernel(mSobelKernel); mSobelKernel = 0; }
 	if (mMinMaxKernel) { clReleaseKernel(mMinMaxKernel); mMinMaxKernel = 0; }
+    if (mMinMaxIterKernel) { clReleaseKernel(mMinMaxIterKernel); mMinMaxIterKernel = 0; }
 	if (mScalePixelsKernel) { clReleaseKernel(mScalePixelsKernel); mScalePixelsKernel = 0; }
 	if (mProgram) { clReleaseProgram(mProgram); mProgram = 0; }
     if (mImageDataIn) { clReleaseMemObject(mImageDataIn); mImageDataIn = 0; }
@@ -755,28 +763,59 @@ void ImageProcessingDialog::runOpenCLSobel()
 		ERROR_MESSAGE("Enqueue minmax kernel failed! Error code = " << retCode);
 		return;
 	}
+    
+    unsigned int minMaxIterBlockNum = mMinMaxBlockNum;
+    retCode = clSetKernelArg(mMinMaxIterKernel, 0, sizeof(cl_mem), &(mMinValues));
+    retCode |= clSetKernelArg(mMinMaxIterKernel, 1, sizeof(cl_mem), &(mMaxValues));
+    retCode |= clSetKernelArg(mMinMaxIterKernel, 3, mMinMaxThreadNumPerBlock * sizeof(float), NULL);
+    retCode |= clSetKernelArg(mMinMaxIterKernel, 4, mMinMaxThreadNumPerBlock * sizeof(float), NULL);
+    if (retCode != CL_SUCCESS) {
+        LOG_ERROR("Set minmaxiter kernel arguments failed! Error code = " << retCode);
+        return;
+    }
+    while (minMaxIterBlockNum > 1) {
+        retCode = clSetKernelArg(mMinMaxIterKernel, 2, sizeof(unsigned int), &(minMaxIterBlockNum));
+        if (retCode != CL_SUCCESS) {
+            LOG_ERROR("Set minmaxiter kernel arguments failed! Error code = " << retCode);
+            return;
+        }
+        minMaxIterBlockNum = (minMaxIterBlockNum + mMinMaxThreadNumPerBlock - 1) / mMinMaxThreadNumPerBlock;
+        globalDim[0] = minMaxIterBlockNum * mMinMaxThreadNumPerBlock;
+        retCode = clEnqueueNDRangeKernel(mCommandQueue, mMinMaxIterKernel,
+            1, NULL, globalDim, localDim, 0, NULL, NULL);
+        if (retCode != CL_SUCCESS) {
+            LOG_ERROR("Enqueue minmaxiter kernel failed! Error code = " << retCode);
+            return;
+        }
+    }
+
+
 
 	// copy min/max values from device to host
-	std::vector<float> minValues(mMinMaxBlockNum, 0);
-	retCode = clEnqueueReadBuffer(mCommandQueue, mMinValues, CL_TRUE, 0, mMinMaxBlockNum * sizeof(float), minValues.data(), 0, NULL, NULL);
+    float minVal;
+    retCode = clEnqueueReadBuffer(mCommandQueue, mMinValues, CL_TRUE, 0, 1 * sizeof(float), &minVal, 0, NULL, NULL);
+	//std::vector<float> minValues(mMinMaxBlockNum, 0);
+	//retCode = clEnqueueReadBuffer(mCommandQueue, mMinValues, CL_TRUE, 0, mMinMaxBlockNum * sizeof(float), minValues.data(), 0, NULL, NULL);
 	if (retCode != CL_SUCCESS) {
 		ERROR_MESSAGE("Enqueue read min values failed! Error code = " << retCode);
 		return;
 	}
-	std::vector<float> maxValues(mMinMaxBlockNum, 0);
-	retCode = clEnqueueReadBuffer(mCommandQueue, mMaxValues, CL_TRUE, 0, mMinMaxBlockNum * sizeof(float), maxValues.data(), 0, NULL, NULL);
+    float maxVal;
+    retCode = clEnqueueReadBuffer(mCommandQueue, mMaxValues, CL_TRUE, 0, 1 * sizeof(float), &maxVal, 0, NULL, NULL);
+	//std::vector<float> maxValues(mMinMaxBlockNum, 0);
+	//retCode = clEnqueueReadBuffer(mCommandQueue, mMaxValues, CL_TRUE, 0, mMinMaxBlockNum * sizeof(float), maxValues.data(), 0, NULL, NULL);
 	if (retCode != CL_SUCCESS) {
 		ERROR_MESSAGE("Enqueue read min values failed! Error code = " << retCode);
 		return;
 	}
 
-	float minVal, maxVal;
-	minVal = minValues[0];
-	maxVal = maxValues[0];
-	for (size_t i = 1; i < mMinMaxBlockNum; ++i) {
-		if (minValues[i] < minVal) minVal = minValues[i];
-		if (maxValues[i] > maxVal) maxVal = maxValues[i];
-	}
+	//float minVal, maxVal;
+	//minVal = minValues[0];
+	//maxVal = maxValues[0];
+	//for (size_t i = 1; i < mMinMaxBlockNum; ++i) {
+	//	if (minValues[i] < minVal) minVal = minValues[i];
+	//	if (maxValues[i] > maxVal) maxVal = maxValues[i];
+	//}
 
 	// Pass 3: scale pixel to [0, 255]
 	retCode = clSetKernelArg(mScalePixelsKernel, 0, sizeof(cl_mem), &(mImageDataOut));

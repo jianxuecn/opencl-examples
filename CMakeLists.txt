@@ -11,13 +11,13 @@ endif(COMMAND CMAKE_POLICY)
 #set(CMAKE_OSX_DEPLOYMENT_TARGET "macOS 10.15" CACHE STRING "OSX deployment target")
 set(CMAKE_OSX_SYSROOT macosx)
 
-project(OCLexample VERSION 1.0.0)
+project(OCLexample VERSION 1.1.0)
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/local-dependencies.cmake)
   include(local-dependencies.cmake)
 endif()
 
-set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/dist" CACHE PATH "IUltra install prefix" FORCE)
+set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/dist" CACHE PATH "OCLExample install prefix" FORCE)
 set(CMAKE_DEBUG_POSTFIX "d")
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -33,6 +33,13 @@ else(USE_QT5)
 endif(USE_QT5)
 
 find_package(OpenCL REQUIRED)
+
+# configure a header file to pass some of the CMake settings
+# to the source code
+configure_file(
+  ${PROJECT_SOURCE_DIR}/AppInfo.h.in
+  ${PROJECT_BINARY_DIR}/AppInfo.h
+)
 
 set(OCL_EXAMPLE_MOC_FILES
   include/ImageProcessingDialog.h
