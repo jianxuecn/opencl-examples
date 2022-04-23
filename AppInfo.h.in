@@ -1,0 +1,27 @@
+/******************************************************************************
+ * FVKDemo - Demo of Face Vision Kit                                          *
+ * Copyright (C) 2018-2020                                                    *
+ * Intelligent Information Processing Laboratory                              *
+ * University of Chinese Academy of Sciences                                  *
+ *                                                                            *
+ * This file is a part of FVKDemo (Demo of Face Vision Kit). FVK (Face Vision *
+ * Kit) is a toolkit for facial information extraction from images (video     *
+ * frames), e.g. facial landmarks, expression, emotion.                       *
+ *                                                                            *
+ ******************************************************************************/
+#ifndef APPINFO_H
+#define APPINFO_H
+
+// application name
+#define APP_NAME "@PROJECT_NAME@"
+
+// organization info
+#define APP_ORG_NAME "UCAS"
+#define APP_ORG_DOMAIN "ucas.ac.cn"
+
+// version
+#define APP_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define APP_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define APP_VERSION_PATCH @PROJECT_VERSION_PATCH@
+
+#endif // APPINFO_H

@@ -20,8 +20,9 @@
  * -------------------------------------------------------------------------------
  */
 #include "ImageProcessingDialog.h"
-#include "LogManager.h"
+#include "LogUtils.h"
 #include "ExampleLogger.h"
+#include "AppInfo.h"
 
 #include <QApplication>
 #include <QDir>
@@ -30,9 +31,9 @@
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication::setOrganizationName("UCAS");
-    QCoreApplication::setOrganizationDomain("ucas.ac.cn");
-    QCoreApplication::setApplicationName("OCLExample");
+    QCoreApplication::setOrganizationName(APP_ORG_NAME);
+    QCoreApplication::setOrganizationDomain(APP_ORG_DOMAIN);
+    QCoreApplication::setApplicationName(APP_NAME);
     //QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QApplication app(argc, argv);
@@ -52,7 +53,18 @@ int main(int argc, char *argv[])
     LoggerPointer logger(new ExampleLogger(logDir.absoluteFilePath("OCLExample.log").toLocal8Bit().constData(), mainDlg.logWidget()));
     LogManager::instance().setLogger(logger);
 
-    LOG_INFO("Start!");
+    QString arch;
+    if (sizeof(void*) == 4) arch = "x86";
+    else if (sizeof(void*) == 8) arch = "x64";
+    else arch = "unknown arch";
+    QString appinfo = QString("Start %1 %2.%3.%4 (%5)")
+        .arg(APP_NAME)
+        .arg(APP_VERSION_MAJOR)
+        .arg(APP_VERSION_MINOR)
+        .arg(APP_VERSION_PATCH)
+        .arg(arch);
+    log_info(appinfo);
+    log_info(QString("Working dir: %1").arg(QCoreApplication::applicationDirPath()));
 
     if (mainDlg.initOCLContext()) {    }
     retCode = app.exec();

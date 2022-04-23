@@ -104,6 +104,7 @@ private:
     cl_kernel mGradientImageKernel;
 	cl_kernel mSobelKernel;
 	cl_kernel mMinMaxKernel;
+    cl_kernel mMinMaxIterKernel;
 	cl_kernel mScalePixelsKernel;
 
     unsigned int mImageBytes;

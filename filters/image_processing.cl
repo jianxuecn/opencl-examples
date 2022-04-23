@@ -49,7 +49,7 @@ __kernel void k_gradient_uchar4(__global uchar4 *dataOut,
     const float4 grady = fabs(pixels1 - pixels2);    
     const float4 grad_mag = sqrt(gradx*gradx+grady*grady);
     const uint outidx = y * imageWidth + x;
-    const uchar4 final = convert_uchar4(grad_mag);
+    uchar4 final = convert_uchar4(grad_mag);
     final.w = 255;
     //vstore4(final, outidx, dataOut);
     dataOut[outidx] = final;
@@ -103,7 +103,7 @@ __kernel void k_gradient_image(__global uchar4 *dataOut,
     const float4 grady = fabs(pixels1 - pixels2);    
     const float4 grad_mag = sqrt(gradx*gradx+grady*grady);
     const uint outidx = y * imageWidth + x;
-    const uchar4 final = convert_uchar4(grad_mag*255.0f);
+    uchar4 final = convert_uchar4(grad_mag*255.0f);
     final.w = 255;
     //vstore4(final.wxyz, outidx, dataOut);
     dataOut[outidx] = final.zyxw; //i.e. final.bgra
@@ -248,6 +248,36 @@ __kernel void k_min_max(__global float *minOut,
         unsigned int outIdx = get_group_id(0);
         minOut[outIdx] = minShared[0];
         maxOut[outIdx] = maxShared[0];
+    }
+}
+
+__kernel void k_min_max_iter(__global float *minInOut,
+                             __global float *maxInOut,
+                             const unsigned int n,
+                             __local float *minShared,
+                             __local float *maxShared)
+{
+    unsigned int tid = get_local_id(0);
+    unsigned int i = get_global_id(0);
+
+    minShared[tid] = (i < n) ? minInOut[i] : FLT_MAX;
+    maxShared[tid] = (i < n) ? maxInOut[i] : FLT_MIN;
+
+    barrier(CLK_GLOBAL_MEM_FENCE);
+
+    // do reduction in shared memory
+    for (unsigned int s=get_local_size(0)/2; s>0; s>>=1) {
+        if (tid < s) {
+            if (minShared[tid+s] < minShared[tid]) minShared[tid] = minShared[tid+s];
+            if (maxShared[tid+s] > maxShared[tid]) maxShared[tid] = maxShared[tid+s];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+    if (tid == 0) {
+        unsigned int outIdx = get_group_id(0);
+        minInOut[outIdx] = minShared[0];
+        maxInOut[outIdx] = maxShared[0];
     }
 }
 
