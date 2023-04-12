@@ -15,6 +15,8 @@ project(OCLexample VERSION 1.1.0)
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/local-dependencies.cmake)
   include(local-dependencies.cmake)
+else()
+  set(Qt5_INSTALL_DIR "" CACHE PATH "Qt5 install path")
 endif()
 
 set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/dist" CACHE PATH "OCLExample install prefix" FORCE)
