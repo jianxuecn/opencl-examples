@@ -263,7 +263,7 @@ __kernel void k_min_max_iter(__global float *minInOut,
     minShared[tid] = (i < n) ? minInOut[i] : FLT_MAX;
     maxShared[tid] = (i < n) ? maxInOut[i] : FLT_MIN;
 
-    barrier(CLK_GLOBAL_MEM_FENCE);
+    barrier(CLK_LOCAL_MEM_FENCE);
 
     // do reduction in shared memory
     for (unsigned int s=get_local_size(0)/2; s>0; s>>=1) {

@@ -23,9 +23,11 @@
 #include "ui_ImageViewWidget.h"
 #include <QPixmap>
 #include <QImage>
+#include <QGuiApplication>
+#include <QScreen>
 
-int const IMAGE_DISPLAY_WIDTH = 800;
-int const IMAGE_DISPLAY_HEIGHT = 600;
+//int const IMAGE_DISPLAY_WIDTH = 800;
+//int const IMAGE_DISPLAY_HEIGHT = 600;
 
 ImageViewWidget::ImageViewWidget(QString const &title, QWidget *parent) :
     ToolWindow(parent),
@@ -45,7 +47,11 @@ ImageViewWidget::~ImageViewWidget()
 void ImageViewWidget::showImage(QImage const &img)
 {
     this->setWindowTitle(QString("%1 (%2 x %3)").arg(mTitle).arg(img.width()).arg(img.height()));
-    if (img.width()> IMAGE_DISPLAY_WIDTH || img.height()> IMAGE_DISPLAY_HEIGHT) {
+
+    QRect screenRect = QGuiApplication::primaryScreen()->geometry();
+    int const IMAGE_DISPLAY_WIDTH = screenRect.width() * 4 / 5;
+    int const IMAGE_DISPLAY_HEIGHT = screenRect.height() * 4 / 5;
+    if (img.width() > IMAGE_DISPLAY_WIDTH || img.height() > IMAGE_DISPLAY_HEIGHT) {
         ui->labelImage->setPixmap(QPixmap::fromImage(img.scaled(IMAGE_DISPLAY_WIDTH, IMAGE_DISPLAY_HEIGHT, Qt::KeepAspectRatio)));
     } else {
         ui->labelImage->setPixmap(QPixmap::fromImage(img));
