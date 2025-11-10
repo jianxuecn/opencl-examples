@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 if(COMMAND CMAKE_POLICY)
   # Works around warnings libraries linked against that don't
   # have absolute paths (e.g. -lOgreMain)
@@ -8,26 +8,33 @@ if(COMMAND CMAKE_POLICY)
   cmake_policy(SET CMP0053 NEW)
 endif(COMMAND CMAKE_POLICY)
 
+option(USE_QT5 "Use Qt5 for GUI." OFF)
+option(USE_QT6 "Use Qt6 for GUI." ON)
+
 #set(CMAKE_OSX_DEPLOYMENT_TARGET "macOS 10.15" CACHE STRING "OSX deployment target")
 set(CMAKE_OSX_SYSROOT macosx)
+#set(CMAKE_OSX_ARCHITECTURES "x86_64")
 
 project(OCLexample VERSION 1.1.0)
+
+set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/dist" CACHE PATH "OCLExample install prefix" FORCE)
+set(CMAKE_DEBUG_POSTFIX "d")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/local-dependencies.cmake)
   include(local-dependencies.cmake)
 else()
   set(Qt5_INSTALL_DIR "" CACHE PATH "Qt5 install path")
+  set(Qt6_INSTALL_DIR "" CACHE PATH "Qt6 install path")
 endif()
-
-set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/dist" CACHE PATH "OCLExample install prefix" FORCE)
-set(CMAKE_DEBUG_POSTFIX "d")
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 include(PrepareQt)
 set(OCL_EXAMPLE_USE_QT5 ${USE_QT5})
 
 if(USE_QT5)
   PREPARE_QT5(Core Gui Widgets)
+elseif(USE_QT6)
+  PREPARE_QT6(Core Gui Widgets)
 else(USE_QT5)
   set(QT_USE_QTXML 1)
   set(QT_USE_QTOPENGL 1)
