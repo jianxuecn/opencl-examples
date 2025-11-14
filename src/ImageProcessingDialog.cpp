@@ -203,6 +203,10 @@ void ImageProcessingDialog::openSourceFile()
     QString fileName = QFileDialog::getOpenFileName(this, "Open Source Image", QString(), "Images (*.png *.bmp *.jpg *.tif)");
     if (fileName.isEmpty()) return;
     QImage image(fileName);
+    if (image.isNull()) {
+        ERROR_MESSAGE("Failed to load image " << fileName.toLocal8Bit().constData());
+        return;
+    }
     if (image.format() == QImage::Format_RGB32) {
         mSourceImage = image;
     } else {

@@ -6,7 +6,7 @@ if(COMMAND CMAKE_POLICY)
   cmake_policy(SET CMP0020 NEW)
   cmake_policy(SET CMP0048 NEW)
   cmake_policy(SET CMP0053 NEW)
-endif(COMMAND CMAKE_POLICY)
+endif()
 
 option(USE_QT5 "Use Qt5 for GUI." OFF)
 option(USE_QT6 "Use Qt6 for GUI." ON)
@@ -17,10 +17,6 @@ set(CMAKE_OSX_SYSROOT macosx)
 
 project(OCLexample VERSION 1.1.0)
 
-set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/dist" CACHE PATH "OCLExample install prefix" FORCE)
-set(CMAKE_DEBUG_POSTFIX "d")
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-
 if(EXISTS ${PROJECT_SOURCE_DIR}/local-dependencies.cmake)
   include(local-dependencies.cmake)
 else()
@@ -28,18 +24,24 @@ else()
   set(Qt6_INSTALL_DIR "" CACHE PATH "Qt6 install path")
 endif()
 
+set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/dist" CACHE PATH "OCLExample install prefix" FORCE)
+set(CMAKE_DEBUG_POSTFIX "d")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 include(PrepareQt)
-set(OCL_EXAMPLE_USE_QT5 ${USE_QT5})
+#set(OCL_EXAMPLE_USE_QT5 ${USE_QT5})
 
 if(USE_QT5)
+  set(CMAKE_PREFIX_PATH "${Qt5_INSTALL_DIR}")
   PREPARE_QT5(Core Gui Widgets)
 elseif(USE_QT6)
+  set(CMAKE_PREFIX_PATH "${Qt6_INSTALL_DIR}")
   PREPARE_QT6(Core Gui Widgets)
-else(USE_QT5)
+else()
   set(QT_USE_QTXML 1)
   set(QT_USE_QTOPENGL 1)
   PREPARE_QT4(4.8.0 Core Gui)
-endif(USE_QT5)
+endif()
 
 find_package(OpenCL REQUIRED)
 
@@ -117,7 +119,12 @@ if(WIN32)
     install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins imageformats gif ico jpeg svg tga tiff wbmp webp)
     install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins iconengines svgicon)
     #install_icu_dll(${QT_USED_DLL_DIR} icudt53 icuin53 icuuc53)
-  endif(USE_QT5)
+  elseif(USE_QT6)
+    install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins platforms minimal offscreen windows)
+    install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins styles windowsvistastyle)
+    install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins imageformats gif ico jpeg svg tga tiff wbmp webp)
+    install_qt_plugins(${QT_VER} ${QT_USED_DLL_DIR}/../plugins iconengines svgicon)
+  endif()
   add_executable(${TARGETNAME} WIN32 ${OCL_EXAMPLE_SRCS} ${OCL_EXAMPLE_RES})
 elseif(APPLE)
   # Set the OS X Bundle specific CMake variables which will be used to populate the plist for
@@ -144,9 +151,9 @@ elseif(APPLE)
   # Set a custom plist file for the app bundle
   set_target_properties(${TARGETNAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/Info.plist.in)
 
-else(WIN32)
+else()
   add_executable(${TARGETNAME} ${OCL_EXAMPLE_SRCS})
-endif(WIN32)
+endif()
 
 set_target_properties(${TARGETNAME} PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib
@@ -162,10 +169,10 @@ if(APPLE)
   set(plugin_dest_dir ${TARGETNAME}.app/Contents/PlugIns)
   #set(qtconf_dest_dir QtTest.app/Contents/Resources)
   set(APPS "\${CMAKE_INSTALL_PREFIX}/${TARGETNAME}.app")
-endif(APPLE)
+endif()
 if(WIN32)
   set(APPS "\${CMAKE_INSTALL_PREFIX}/${TARGETNAME}.exe")
-endif(WIN32)
+endif()
   
 install(TARGETS ${TARGETNAME}
   BUNDLE DESTINATION . COMPONENT Runtime 
@@ -174,15 +181,15 @@ install(TARGETS ${TARGETNAME}
 
 if(APPLE)
   #install(FILES ${OCL_PROGRAM_FILE} DESTINATION . COMPONENT Runtime)
-else(APPLE)
+else()
   install(FILES ${OCL_PROGRAM_FILE} DESTINATION filters CONFIGURATIONS Release None "")
-endif(APPLE)
+endif()
 
 if(WIN32)
   install(TARGETS ${TARGETNAME} RUNTIME DESTINATION Debug CONFIGURATIONS Debug)
   install(TARGETS ${TARGETNAME} RUNTIME DESTINATION RelWithDebInfo CONFIGURATIONS RelWithDebInfo)
   install(TARGETS ${TARGETNAME} RUNTIME DESTINATION MinSizeRel CONFIGURATIONS MinSizeRel)
-endif(WIN32)
+endif()
 
 # deal with dependencies
 if(APPLE)
@@ -198,18 +205,18 @@ if(APPLE)
       fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DEP_DIRS}\")
       " COMPONENT Runtime
 )
-endif(APPLE)
+endif()
 
 if(APPLE)
-else(APPLE)
+else()
   add_custom_command(TARGET ${TARGETNAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${TARGETNAME}>/filters)
   add_custom_command(TARGET ${TARGETNAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${OCL_PROGRAM_FILE} $<TARGET_FILE_DIR:${TARGETNAME}>/filters)
-endif(APPLE)
+endif()
 # setup CPack
 set(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR}" "${TARGETNAME}" "ALL" "/")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${TARGETNAME} - A visualization software for animation of the block system.")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${TARGETNAME} - An OpenCL demo app for Cloud Computing Course and the Computer Graphics Course.")
 set(CPACK_PACKAGE_VENDOR "UCAS")
 set(CPACK_PACKAGE_VERSION_MAJOR "${OCL_EXAMPLE_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${OCL_EXAMPLE_VERSION_MINOR}")
@@ -240,8 +247,8 @@ elseif(APPLE)
   #set(CPACK_BUNDLE_NAME "VisKBT")
   #set(CPACK_BUNDLE_PLIST "${CMAKE_INSTALL_PREFIX}/${TARGETNAME}.app/Contents/Info.plist")
   #set(CPACK_BUNDLE_ICON "${CMAKE_INSTALL_PREFIX}/${TARGETNAME}.app/Contents/Resources/VisKBT.icns")
-else(WIN32)
+else()
   set(CPACK_GENERATOR "RPM")
-endif(WIN32)
+endif()
 
 include(CPack)
