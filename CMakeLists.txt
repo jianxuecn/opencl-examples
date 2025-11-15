@@ -13,7 +13,7 @@ option(USE_QT6 "Use Qt6 for GUI." ON)
 
 #set(CMAKE_OSX_DEPLOYMENT_TARGET "macOS 10.15" CACHE STRING "OSX deployment target")
 set(CMAKE_OSX_SYSROOT macosx)
-#set(CMAKE_OSX_ARCHITECTURES "x86_64")
+set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures" FORCE)
 
 project(OCLexample VERSION 1.1.0)
 
