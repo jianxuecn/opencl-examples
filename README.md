@@ -22,7 +22,7 @@ This projcet demonstrates how to write parallel programs for fast image processi
 ### Prepare develop tools
 
 1. Install Git (optional) to retrieve the source code from GitHub.
-2. Install Qt Creator and libraries (Qt 5.15 is preferred) with appropriate C++ compiler (e.g. Clang on macOS, gcc on Linux and MSVC on Windows).
+2. Install Qt Creator and libraries (Qt 5.15 ant 6.5 are tested and preferred) with appropriate C++ compiler (e.g. Clang on macOS, gcc on Linux and MSVC on Windows).
 3. Install CMake (https://cmake.org/) for generating native makefiles and workspaces according to the compiler actually used. May be installed together with Qt.
 4. Install dev kit for OpenCL according to the type of GPU you want to try the parallel programs on (e.g. CUDA for NVIDIA GPU).
 
