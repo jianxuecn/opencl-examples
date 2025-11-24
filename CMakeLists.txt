@@ -15,7 +15,7 @@ option(USE_QT6 "Use Qt6 for GUI." ON)
 set(CMAKE_OSX_SYSROOT macosx)
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures" FORCE)
 
-project(OCLexample VERSION 1.1.0)
+project(OCLexample VERSION 1.1.2)
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/local-dependencies.cmake)
   include(local-dependencies.cmake)
